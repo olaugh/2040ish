@@ -1,4 +1,5 @@
 function GameManager(size, InputManager, Actuator, StorageManager) {
+  this.mergerRandom = Math.random();
   this.size           = size; // Size of the grid
   this.inputManager   = new InputManager;
   this.storageManager = new StorageManager;
@@ -39,12 +40,14 @@ GameManager.prototype.setup = function () {
   if (previousState) {
     this.grid        = new Grid(previousState.grid.size,
                                 previousState.grid.cells); // Reload grid
+    this.grid.mergerRandom = previousState.mergerRandom;
     this.score       = previousState.score;
     this.over        = previousState.over;
     this.won         = previousState.won;
     this.keepPlaying = previousState.keepPlaying;
   } else {
     this.grid        = new Grid(this.size);
+    this.mergerRandom = Math.random();
     this.score       = 0;
     this.over        = false;
     this.won         = false;
@@ -65,10 +68,37 @@ GameManager.prototype.addStartTiles = function () {
   }
 };
 
+GameManager.prototype.randomCellValue = function () {
+  var primes = [2, 3, 5, 7];
+  var value = 1;
+  for (var i = 0; i < primes.length; i++) {
+    var prime = primes[i];
+    console.log("prime: " + prime);
+    var usePrimeRandom = Math.random();
+    var usePrimeThreshold = Math.pow(0.4, (i + 1));
+    console.log("usePrimeRandom: " + usePrimeRandom);
+    console.log("usePrimeThreshold: " + usePrimeThreshold);
+    if (usePrimeRandom < usePrimeThreshold) {
+      var exponentRandom = Math.random();
+      var exponent = exponentRandom < 0.9 ? 1 : 2;
+      console.log("exponentRandom: " + exponentRandom);
+      console.log("exponent: " + exponent);
+      console.log("primes[i]: " + primes[i]);
+
+      value *= Math.pow(primes[i], exponent);
+      console.log("value: " + value);
+    }
+  }
+  if (value == 1) {
+    return 2;
+  }
+  return value;
+};
+
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
-    var value = Math.random() < 0.9 ? 2 : 4;
+    var value = this.randomCellValue();
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
     this.grid.insertTile(tile);
@@ -89,6 +119,7 @@ GameManager.prototype.actuate = function () {
   }
 
   this.actuator.actuate(this.grid, {
+    mergerRandom: this.grid.mergerRandom,
     score:      this.score,
     over:       this.over,
     won:        this.won,
@@ -102,6 +133,7 @@ GameManager.prototype.actuate = function () {
 GameManager.prototype.serialize = function () {
   return {
     grid:        this.grid.serialize(),
+    mergerRandom: this.grid.mergerRandom,
     score:       this.score,
     over:        this.over,
     won:         this.won,
@@ -124,6 +156,17 @@ GameManager.prototype.moveTile = function (tile, cell) {
   this.grid.cells[tile.x][tile.y] = null;
   this.grid.cells[cell.x][cell.y] = tile;
   tile.updatePosition(cell);
+};
+
+GameManager.prototype.canMerge = function (other, tile) {
+  var greater = Math.max(other.value, tile.value);
+  var smaller = Math.min(other.value, tile.value);
+  var ratio = greater / smaller;
+  if (ratio >= 1.9999) {
+    return false;
+  }
+  var threshold = Math.pow(2 - ratio, 3);
+  return this.mergerRandom < threshold;
 };
 
 // Move tiles on the grid in the specified direction
@@ -153,8 +196,8 @@ GameManager.prototype.move = function (direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
-          var merged = new Tile(positions.next, tile.value * 2);
+        if (next && self.canMerge(next, tile) && !next.mergedFrom) {
+          var merged = new Tile(positions.next, next.value + tile.value);
           merged.mergedFrom = [tile, next];
 
           self.grid.insertTile(merged);
@@ -167,7 +210,7 @@ GameManager.prototype.move = function (direction) {
           self.score += merged.value;
 
           // The mighty 2048 tile
-          if (merged.value === 2048) self.won = true;
+          if (merged.value >= 2048) self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);
         }
@@ -181,6 +224,7 @@ GameManager.prototype.move = function (direction) {
 
   if (moved) {
     this.addRandomTile();
+    this.mergerRandom = Math.random();
 
     if (!this.movesAvailable()) {
       this.over = true; // Game over!
@@ -241,6 +285,7 @@ GameManager.prototype.movesAvailable = function () {
 
 // Check for available matches between tiles (more expensive check)
 GameManager.prototype.tileMatchesAvailable = function () {
+  console.log("tileMatchesAvailable");
   var self = this;
 
   var tile;
@@ -256,7 +301,7 @@ GameManager.prototype.tileMatchesAvailable = function () {
 
           var other  = self.grid.cellContent(cell);
 
-          if (other && other.value === tile.value) {
+          if (other && this.canMerge(other, tile)) {
             return true; // These two tiles can be merged
           }
         }

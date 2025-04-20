@@ -40,7 +40,7 @@ body {
 }
 
 h1.title {
-  font-size: 80px;
+  font-size: 27px;
   font-weight: bold;
   margin: 0;
   display: block;
@@ -78,6 +78,7 @@ h1.title {
   border-radius: 3px;
   color: white;
   margin-top: 8px;
+  margin-bottom: 16px;
   text-align: center;
 
   &:after {
@@ -311,6 +312,11 @@ hr {
 // End of game-field mixin
 @include game-field;
 
+.tile-other .tile-inner {
+  background: #b0b0b0; // Example background color
+  color: #ffffff; // Example text color
+}
+
 .tile {
   position: absolute; // Makes transforms relative to the top-left corner
 
@@ -458,6 +464,7 @@ hr {
 .game-intro {
   float: left;
   line-height: 42px;
+  margin-top: 20px
   margin-bottom: 0;
 }
 
@@ -515,6 +522,7 @@ hr {
     width: 55%;
     display: block;
     box-sizing: border-box;
+    margin-top: 20px;
     line-height: 1.65;
   }
 
