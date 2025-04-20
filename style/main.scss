@@ -317,6 +317,34 @@ hr {
   color: #ffffff; // Example text color
 }
 
+.tile .tile-digits-1 {
+  font-size: 55px;
+}
+
+.tile .tile-digits-2 {
+  font-size: 55px;
+}
+
+.tile .tile-digits-3 {
+  font-size: 45px;
+}
+
+@media screen and (max-width: 520px) {
+  .tile.tile-digits-3 .tile-inner {
+    font-size: 25px;
+  }
+}
+
+.tile .tile-digits-4 {
+  font-size: 35px;
+}
+
+@media screen and (max-width: 520px) {
+  .tile.tile-digits-4 .tile-inner {
+    font-size: 15px;
+  }
+}
+
 .tile {
   position: absolute; // Makes transforms relative to the top-left corner
 
@@ -464,7 +492,7 @@ hr {
 .game-intro {
   float: left;
   line-height: 42px;
-  margin-top: 20px
+  margin-top: 20px;
   margin-bottom: 0;
 }
 
@@ -539,6 +567,20 @@ hr {
 
   // Rest of the font-size adjustments in the tile class
   .tile .tile-inner {
+  font-size: inherit; // Reset font size to inherit
+}
+.tile.tile-digits-1 .tile-inner {
+  font-size: 55px;
+}
+.tile.tile-digits-2 .tile-inner {
+  font-size: 55px;
+}
+.tile.tile-digits-3 .tile-inner {
+  font-size: 45px;
+}
+.tile.tile-digits-4 .tile-inner {
+  font-size: 35px;
+}
     font-size: 35px;
   }
 
